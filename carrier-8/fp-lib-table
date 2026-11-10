@@ -1,0 +1,4 @@
+(fp_lib_table
+	(version 7)
+	(lib (name "oft")(type "KiCad")(uri "${KIPRJMOD}/../lib/oft.pretty")(options "")(descr "Open FPV Timer modules"))
+)
