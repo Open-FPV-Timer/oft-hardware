@@ -132,3 +132,7 @@ After opening a board in the KiCad GUI, press B once to refill zones.
 13. **Mounting.** M2.5 holes, positions arbitrary: four at the corners of the stick, three or
     four beside and under the Timer on the others (those under the module are only reachable
     with it unplugged). Decide alongside the case, along with where the foil wall goes.
+
+## Licence
+
+GPL-3.0-or-later, the same as the other OFT repos. See [LICENSE](LICENSE).
