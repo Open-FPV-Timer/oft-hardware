@@ -133,6 +133,13 @@ After opening a board in the KiCad GUI, press B once to refill zones.
     four beside and under the Timer on the others (those under the module are only reachable
     with it unplugged). Decide alongside the case, along with where the foil wall goes.
 
+## Acknowledgements
+
+OFT is inspired by [FPVGate](https://github.com/LouisHitchcock/FPVGateC5MK), which showed
+that an ESP32-C5 can time laps, and builds on [widscan58](https://github.com/CapnBry/widscan58),
+esp-sdr, C5VRX and RotorHazard. The full list is in the
+[oft README](https://github.com/Open-FPV-Timer/oft#acknowledgements).
+
 ## Licence
 
 GPL-3.0-or-later, the same as the other OFT repos. See [LICENSE](LICENSE).
