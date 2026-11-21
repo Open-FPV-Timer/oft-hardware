@@ -75,7 +75,8 @@ the XIAOs.
 - `carrier-N/`: the KiCad project for each size.
 - `lib/`: shared symbols (`oft.kicad_sym`) and footprints (`oft.pretty`) for the two modules.
   The Timer footprint is drawn from Waveshare's dimension drawing; the XIAO pad positions come
-  from Seeed's own `XIAO-ESP32-C5-SMD` footprint (MIT, github.com/Seeed-Studio/OSHW-XIAO-Series).
+  from Seeed's own `XIAO-ESP32-C5-SMD` footprint (MIT, github.com/Seeed-Studio/OSHW-XIAO-Series;
+  its notice is in `NOTICE.md`).
 - `gen/`: the scripts that produced the drafts. `carrier_sch.py` draws the schematic for any
   size. `stick_pcb.py` lays out the 1-Node board and `grid_pcb.py` the 2, 4 and 8-Node boards;
   placement and routing are written out by hand, and each file's header explains its routing
