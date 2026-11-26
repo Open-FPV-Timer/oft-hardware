@@ -33,8 +33,8 @@ be left empty.
 
 Slots are numbered left to right, top row first. The pins follow the layout: each row's UART
 pads are wired to the Timer pin row facing it, in the same left-to-right order, so nothing
-crosses. UART1 (GP4/GP5) is the pair `oft-timer-rp2350/src/board.rs` uses today, so that is
-the slot the current single-Node firmware drives.
+crosses. UART1 (GP4/GP5) is the pair `oft-timer-rp2350/src/board.rs` gives Node 1 by default; the
+other slots' pins are set on the Timer's Advanced page.
 
 | Board | Slot: Timer TX / RX (to Node D7 / from Node D6) |
 |---|---|
@@ -117,8 +117,10 @@ After opening a board in the KiCad GUI, press B once to refill zones.
    current while sampling and the PoE module's 5 V rating are both still unmeasured (HBOM).
    Eight Nodes will very likely need a separate 5 V input on the carrier, which this draft does
    not have.
-7. **Firmware.** The Timer drives one Node today. The other slots are a pin proposal that
-   needs UART0 and PIO UART support before the larger boards do anything extra.
+7. **Firmware.** The Timer firmware drives up to four Nodes (its `multi-node` work): slot
+   pins are a setting, Node 1 on UART1, Node 2 on UART0, Nodes 3 and 4 on PIO UARTs, which
+   have not yet run on hardware. The carrier-1, -2 and -4 pin maps above fit that. The
+   8-Node board needs four more PIO links than the firmware has.
 8. **VSYS on the 2 and 4-Node boards** squeezes between two Timer pins as a 0.4 mm track for a
    few millimetres. Fine for two Nodes; check it against the measured current for four.
 9. **Antenna end clearance.** On the 2, 4 and 8-Node boards the XIAOs' antenna ends sit 8 mm
