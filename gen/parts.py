@@ -10,9 +10,10 @@ plugs into two 1x16 female sockets.
 
 XIAO ESP32-C5 (Seeed). Pad positions from Seeed's own XIAO-ESP32-C5-SMD footprint
 (github.com/Seeed-Studio/OSHW-XIAO-Series, MIT licence): 17.8 x 21 mm, 14 castellated edge
-pads, and round pads on the underside. The module is soldered flat. The three underside pads
-we use (EN, MTMS, BOOT) become plated holes so they can be soldered from the back of the
-carrier; the other underside pads get no copper at all.
+pads, and round pads on the underside. The module is soldered flat by its edge pads alone:
+none of the underside pads is used, and they get no copper at all. (Any listed in
+XIAO_BACK_USED would become a plated hole, soldered from the back of the carrier; EN, MTMS
+and BOOT were, until SYNC moved to D8 and the Timer learned to restart a Node over its UART.)
 """
 import os
 
@@ -43,7 +44,7 @@ def rp_pin_xy(num):
 
 
 # ---------------------------------------------------------------- XIAO ESP32-C5
-XIAO_FP = "XIAO-ESP32-C5_SMD_BackPads"
+XIAO_FP = "XIAO-ESP32-C5_SMD"
 XIAO_W, XIAO_L = 17.8, 21.0
 # Origin at the body centre, USB-C end up, seen from the component side. Seeed's footprint has
 # its origin at the bottom-left body corner, so x' = x - 8.9 and y' = y + 10.5.
@@ -62,7 +63,7 @@ XIAO_BACK = {
     "21": ("BOOT", 7.6166 - 8.9, -11.5215 + 10.5),
     "22": ("3V3", 10.064 - 8.9, -11.5783 + 10.5),
 }
-XIAO_BACK_USED = ("17", "19", "21")
+XIAO_BACK_USED = ()
 XIAO_BACK_PAD, XIAO_BACK_DRILL = 1.7, 0.9
 XIAO_PINS = {str(i + 1): n for i, n in enumerate(XIAO_LEFT)}
 XIAO_PINS.update({str(14 - i): n for i, n in enumerate(XIAO_RIGHT)})
@@ -139,8 +140,8 @@ def write_rp():
 
 def write_xiao():
     hw, hl = XIAO_W / 2, XIAO_L / 2
-    s = _head(XIAO_FP, "Seeed XIAO ESP32-C5 soldered flat by its castellated edges. EN, MTMS and BOOT "
-                       "underside pads are plated holes, soldered from the back of the carrier. "
+    s = _head(XIAO_FP, "Seeed XIAO ESP32-C5 soldered flat by its castellated edges. No underside pad "
+                       "is used. "
                        "Origin at the body centre, USB-C end towards -Y. Pad positions from Seeed's "
                        "XIAO-ESP32-C5-SMD footprint.", "smd")
     s += _prop("Reference", "REF**", 0, -hl - 1.2, "F.SilkS")

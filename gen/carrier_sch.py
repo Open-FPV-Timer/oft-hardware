@@ -30,7 +30,8 @@ s.text("TIMER: Waveshare RP2350-POE-ETH (socketed, two 1x16 female sockets)", 14
 s.text("W6300 Ethernet uses GP16 to GP21 on the module itself. PoE module plugs on top.\n"
        "%s. All links 921600 baud.\n"
        "UART1 (GP4/GP5) is the pair the single-Node firmware uses.\n"
-       "GP6 = SYNC, GP7 = EN, GP8 = BOOT, shared by every slot."
+       "GP6 = SYNC, shared by every slot. EN and BOOT are not wired:\n"
+       "the Timer restarts and updates a Node over its UART."
        % ", ".join("slot %d = %s" % (n, carrier.uart(N, n)) for n in SLOTS), 14, 17)
 s.module_symbol("RP2350-POE-ETH",
                 [(i + 1, n) for i, n in enumerate(parts.RP_LEFT)],
@@ -46,8 +47,7 @@ s.flag_stub("U1", 30, 10, 22)
 # ================================================================ series resistors
 s.text("LINK RESISTORS", 100, 14, 1.6)
 s.text("220R on each data line limits the current when one board is powered and\n"
-       "the other is not. SYNC, EN and BOOT are single lines bussed to every\n"
-       "slot, so a reset or boot button on any XIAO acts on all of them.", 100, 17)
+       "the other is not. SYNC is a single line bussed to every slot.", 100, 17)
 row = 0
 for n in SLOTS:
     for rx, a, b_ in ((False, "T_TX%d" % n, "NODE%d_RX" % n), (True, "T_RX%d" % n, "NODE%d_TX" % n)):
@@ -55,23 +55,22 @@ for n in SLOTS:
         row += 1
 for i, (net, _, _, val, lcsc) in enumerate(carrier.BUS):
     s.series(carrier.bus_ref(N, i), val, 122, 36 + 8 * (row + i), "T_" + net, net, fields={"LCSC": lcsc})
-res_bottom = 36 + 8 * (row + 3)
+res_bottom = 36 + 8 * (row + len(carrier.BUS))
 
 # ================================================================ Node modules
 s.text("NODES: Seeed XIAO ESP32-C5 (soldered flat). Leave unused slots empty.", 170, 14, 1.6)
-s.text("Edge pads are hand-soldered castellations. EN, MTMS and BOOT are pads on the underside:\n"
-       "each lands on a plated hole, soldered from the back of the carrier.\n"
-       "D6/D7 = UART0 TX/RX (GPIO11/12). MTMS = GPIO2 = OFT_SYNC_GPIO default.", 170, 17)
+s.text("Edge pads are hand-soldered castellations. No pad on the underside is used.\n"
+       "D6/D7 = UART0 TX/RX (GPIO11/12). D8 = GPIO8 = OFT_SYNC_GPIO default.", 170, 17)
 s.module_symbol("XIAO-ESP32-C5",
-                [(i + 1, n) for i, n in enumerate(parts.XIAO_LEFT)] + [(17, "EN"), (19, "MTMS"), (21, "BOOT")],
+                [(i + 1, n) for i, n in enumerate(parts.XIAO_LEFT)],
                 [(14 - i, n) for i, n in enumerate(parts.XIAO_RIGHT)],
-                "oft:" + parts.XIAO_FP, "Seeed XIAO ESP32-C5, castellated, underside EN/MTMS/BOOT pads", half_width=7)
+                "oft:" + parts.XIAO_FP, "Seeed XIAO ESP32-C5, castellated edge pads", half_width=7)
 COLS = 4 if N > 4 else 2
 for n in SLOTS:
     ref = "U%d" % (n + 1)
     x, y = 200 + 60 * ((n - 1) % COLS), 44 + 44 * ((n - 1) // COLS)
     nets = {"5V": "NODE%d_5V" % n, "GND": "GND", "D7": "NODE%d_RX" % n, "D6": "NODE%d_TX" % n,
-            "MTMS": "SYNC", "EN": "EN", "BOOT": "BOOT"}
+            "D8": "SYNC"}
     s.place("oft:XIAO-ESP32-C5", ref, "XIAO ESP32-C5 slot %d" % n, x, y, footprint="oft:" + parts.XIAO_FP,
             ref_at=(-7, -13), val_at=(-7, 13), fields={"MPN": "Seeed 100010048"})
     for num, pname in parts.XIAO_PINS.items():

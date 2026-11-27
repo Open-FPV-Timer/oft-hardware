@@ -21,7 +21,9 @@ MAP = {
         5: ("GP12", 16, "GP13", 17), 6: ("GP14", 18, "GP15", 19), 7: ("GP22", 21, "GP26", 23),
         8: ("GP27", 24, "GP28", 26)},
 }
-BUS = (("SYNC", "GP6", 9, "220R", "C22962"), ("EN", "GP7", 10, "1k", "C21190"), ("BOOT", "GP8", 11, "1k", "C21190"))
+# One line bussed to every slot. EN and BOOT are not wired: the Timer restarts a Node and reaches
+# its bootloader over the Node's own UART, so no pad on the back of a XIAO is used.
+BUS = (("SYNC", "GP6", 9, "220R", "C22962"),)
 UART = {"GP4": "UART1", "GP0": "UART0"}
 HOLES = {1: 4, 2: 3, 4: 3, 8: 4}
 

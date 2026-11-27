@@ -10,9 +10,9 @@ with its USB-C at the bottom edge and its antenna connector at the top edge.
 
 Routing plan. Every slot repeats one cell. The narrow column left of each XIAO holds, top to
 bottom: two UART vias, a GND via, the slot's 10 uF capacitor and its diode. UART lanes run
-under the XIAOs near the top edge and peel off upwards one slot at a time; three bus lines
-(BOOT, SYNC, EN) run straight through the plated holes of every slot on the bottom layer; VSYS
-runs along the bottom edge.
+under the XIAOs near the top edge and peel off upwards one slot at a time; SYNC is one more
+bottom-layer lane below them, ending at a via beside the XIAO's D8 edge pad; VSYS runs along
+the bottom edge.
 
 The code is written for a row of N slots; only N = 1 is built. grid_pcb.py makes the 2, 4 and
 8-Node boards.
@@ -112,21 +112,24 @@ for k in range(2 * N):
     b.track(net, B, LANE_W, (r[0], ym), (JOG_X, ym), (JOG_X + STEP, ym - STEP))
     leave(B, net, k, slot, (JOG_X + STEP, ym - STEP))
 
-# SYNC, EN, BOOT: down the top layer from each resistor to the height of the XIAO underside
-# pad, then one straight bottom-layer line through that pad on every slot.
-for i, pad in enumerate((19, 17, 21)):
-    ref = carrier.bus_ref(N, i)
-    net, r = b.net_of(ref, 2), P(ref, 2)
-    y = P("U2", pad)[1]
-    b.track(net, F, SIG, r, (r[0], y))
-    b.via(net, r[0], y)
-    b.track(net, B, SIG, (r[0], y), *[P("U%d" % (j + 2), pad) for j in range(N)])
+# SYNC: one more lane below the UART lanes, stepping up with them to the height of the XIAO's
+# D8 edge pad, then a via in the parts column and a short top-layer track to the pad.
+assert N == 1 and len(carrier.BUS) == 1
+ref = carrier.bus_ref(N, 0)
+net, r = b.net_of(ref, 2), P(ref, 2)
+ym, d8 = START + LANE_PITCH * 2 * N, P("U2", 9)
+sv = (GX[0] + 0.3, d8[1])
+b.track(net, F, SIG, r, (r[0], ym))
+b.via(net, r[0], ym)
+b.track(net, B, LANE_W, (r[0], ym), (JOG_X, ym), (JOG_X + ym - d8[1], d8[1]), sv)
+b.via(net, *sv)
+b.track(net, F, SIG, sv, d8)
 
 # Power. VSYS runs along the bottom edge on the bottom layer and comes up below each diode.
 vsys = P("U1", 31)
 VY = 23.5
 b.track("VSYS", B, 1.0, vsys, (vsys[0], VY - 1.11), (vsys[0] + 1.11, VY), (GX[-1], VY))
-SPINE_Y = 11.3                                          # GND strip between the lanes and the BOOT holes
+SPINE_Y = 11.3                                          # GND strip below the lanes
 for i in range(N):
     n, gx = i + 1, GX[i]
     a, k, c5, cg = P("D%d" % n, 2), P("D%d" % n, 1), P("C%d" % n, 1), P("C%d" % n, 2)
@@ -169,11 +172,6 @@ for i in range(N):
     b.text("ANT", CX[i], 3.6, size=1.0)
     b.text("USB", CX[i], 21.6, size=1.0)
     b.text("%d" % (i + 1), CX[i] - 4.5, 15.5, BSILK, size=2.0, thick=0.3)
-    for pad, name in ((17, "EN"), (19, "SYNC"), (21, "BOOT")):
-        x, y = P("U%d" % (i + 2), pad)
-        b.text(name, x + 3.0, y - 1.25, BSILK, size=0.8)
-    b.text("solder EN SYNC", CX[i] + 1.0, 20.9, BSILK, size=0.8)
-    b.text("BOOT this side", CX[i] + 1.0, 22.1, BSILK, size=0.8)
 b.text("Open FPV Timer", 12.0, 12.5, BSILK, size=1.5, thick=0.25, angle=90)
 b.text("carrier %d v0.1 draft" % N, 15.0, 12.5, BSILK, size=1.0, angle=90)
 

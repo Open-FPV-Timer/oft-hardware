@@ -45,15 +45,17 @@ other slots' pins are set on the Timer's Advanced page.
 
 Note the 8-Node board: the UART1 slot is slot 2, not slot 1. Slots without a hardware UART
 need PIO UARTs; six of them is every PIO state machine the RP2350 has. Shared by every slot:
-SYNC on GP6, EN on GP7, BOOT on GP8. The map is in `gen/carrier.py`.
+SYNC on GP6, to each XIAO's D8. EN and BOOT are not wired: the Timer restarts a Node and
+reaches its bootloader over the Node's own UART. The map is in `gen/carrier.py`.
 
 ## Circuit
 
 - **Data lines:** 220R in series on every UART line and on SYNC, to limit the current when one
   board is powered and the other is not.
-- **EN and BOOT:** one 1k each from the Timer, then bussed to every slot. The Timer resets or
-  boot-straps all Nodes together, and a reset or boot button on any XIAO acts on all of them.
-  Each Node has its own UART, so they can still be flashed one at a time.
+- **No EN or BOOT lines.** The Timer restarts a Node, and sends it to its bootloader for a
+  firmware update, with messages on that Node's UART. A Node whose firmware stops answering
+  is recovered with its own buttons (hold BOOT, tap RESET) or its USB-C port, both of which
+  stay reachable at the board edge.
 - **Power:** each XIAO runs from the Timer's Vsys through its own Schottky diode (B5819W) with a
   10 uF capacitor. A laptop on one XIAO's USB-C then powers only that XIAO and cannot back-feed
   the Timer. The diode costs about 0.3 to 0.4 V, so the XIAO sees roughly 4.3 V.
@@ -62,10 +64,10 @@ SYNC on GP6, EN on GP7, BOOT on GP8. The map is in `gen/carrier.py`.
 
 - **RP2350-POE-ETH** plugs into two 1x16 female sockets, component side up. The link resistors
   sit on the carrier under it or just beside its pin rows.
-- **XIAO ESP32-C5** is soldered flat by its castellated edge pads. Its EN, MTMS (GPIO2, the
-  SYNC input) and BOOT pads are on the underside, so each lands on a plated hole in the carrier
-  that you fill with solder from the back. No firmware change is needed: these are the pins
-  `oft-node-c5` already uses.
+- **XIAO ESP32-C5** is soldered flat by its castellated edge pads, and by nothing else: no
+  pad on its underside is used. SYNC is on D8 (GPIO8), the `oft-node-c5` default. The first
+  draft soldered EN, MTMS (GPIO2, then the SYNC input) and BOOT through plated holes from the
+  back of the carrier; those holes are gone.
 
 Fab-assembled: resistors, capacitors, diodes, all top side. Hand-soldered: the two sockets and
 the XIAOs.
@@ -105,14 +107,15 @@ After opening a board in the KiCad GUI, press B once to refill zones.
 2. **Timer pin order.** Pin 1 (GP0) is at the USB-C end of one row and pin 32 (VBUS) at the
    USB-C end of the other. Waveshare's pinout drawing shows the label side; the footprint
    mirrors it for the component side. Check the pins in the table above against the silkscreen.
-3. **XIAO underside pads.** Positions are Seeed's, but which pad is which (EN, MTMS, BOOT in
-   the column on the D0 side) was read off Seeed's back-view pinout picture. Check with a
-   meter: EN to the reset button, BOOT to the boot button.
-4. **XIAO underside clearance.** The carrier has no top copper under the XIAO body, so its
-   other underside pads (3V3, GND, JTAG, BAT, thermal) touch only solder mask. Confirm nothing
-   on the XIAO's underside stands proud.
-5. **Solder-through holes.** 0.9 mm plated holes in 1.7 mm pads. Untested as a way to reach
-   the underside pads; try one XIAO before committing a batch.
+3. **XIAO underside clearance.** The carrier has no top copper under the XIAO body, so its
+   underside pads (EN, BOOT, 3V3, GND, JTAG, BAT, thermal) touch only solder mask. Confirm
+   nothing on the XIAO's underside stands proud.
+4. **Flashing without EN and BOOT.** Run on a breadboard 2026-11-27, four Nodes, many
+   writes, on hardware UART and PIO links. A Node whose write is interrupted by a power
+   cut still needs its BOOT and RESET buttons or its USB port, so keep both reachable in
+   the case until the Node has two firmware slots.
+5. **SYNC vias.** Each D8 pad has a 0.6 mm via 2.6 mm outside it, in the parts column. Check
+   it clears your soldering of the edge pads.
 6. **Power for 4 and 8 Nodes.** Everything draws through the Timer module's Vsys pin. The Node
    current while sampling and the PoE module's 5 V rating are both still unmeasured (HBOM).
    Eight Nodes will very likely need a separate 5 V input on the carrier, which this draft does

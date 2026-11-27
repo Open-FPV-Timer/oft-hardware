@@ -13,9 +13,10 @@ Routing plan.
 - UART: each XIAO's D6/D7 pads face the Timer. Every line runs pin -> resistor just outside
   the pin row -> a short top-layer lane in the channel between the Timer and the XIAOs -> pad.
   Pins and pads are matched left to right, so the lanes never cross and need no vias.
-- SYNC, EN, BOOT: one bottom-layer line per row through that pad's plated hole on every XIAO.
-  The two rows are joined by three verticals at the left, under the Timer's RJ45 end, and fed
-  there from the Timer through top-layer lanes under the module.
+- SYNC: each XIAO's D8 edge pad has a via just outside the module, in the parts column. One
+  bottom-layer line per row joins those vias. The two rows are joined by a vertical at the
+  left, under the Timer's RJ45 end, fed there from the Timer by a top-layer lane under the
+  module.
 - Power: VSYS runs along both outer edges on the bottom layer, joined by a spine at the right.
   The column beside each XIAO holds its diode, capacitor and GND via.
 
@@ -98,8 +99,9 @@ for s in SLOTS:
     PLACE[s.ref] = s.t(s.cx, CYB) + (s.rot(180),)          # bottom row: USB-C towards the bottom edge
     PLACE[s.d] = s.t(s.gx, CYB + 7.75) + (s.rot(270),)     # cathode towards the Timer
     PLACE[s.c] = s.t(s.gx, CYB + 3.4) + (s.rot(90),)       # pad 1 (5 V) towards the diode
-BUS_PAD = {"SYNC": 19, "EN": 17, "BOOT": 21}
-for i, (_, _, pin, _, _) in enumerate(carrier.BUS):       # bus resistors: under the Timer, inside the top row
+SPINE8 = 86.5                                             # 8 Nodes: VSYS spine right of the Timer
+SYNC_PAD, SYNC_VIA_OUT = 9, 2.6                           # D8, and its via's distance outwards from the pad
+for i, (_, _, pin, _, _) in enumerate(carrier.BUS):       # bus resistor: under the Timer, inside the top row
     PLACE[carrier.bus_ref(N, i)] = (pin_x(pin), YT + RES_OUT, 270)
 for i, (x, y) in enumerate(HOLES):
     PLACE["H%d" % (i + 1)] = (x, y, 0)
@@ -159,11 +161,9 @@ for upper in ((True, False) if ROWS == 2 else (True,)):
     levels = fanout(row_y, sign, lines)
     assert LEVEL0 + LEVEL_PITCH * (levels - 1) <= CHANNEL - 0.9, levels
 
-# ---------------------------------------------------------------- SYNC, EN, BOOT
-# Verticals just left of the first column's plated holes; BOOT (nearest the Timer in both rows)
-# is innermost, so the three nest without crossing.
-VX = {"BOOT": CX0 - 2.9, "SYNC": CX0 - 3.6, "EN": CX0 - 4.3}
-TRUNK = {"BOOT": YT + 5.4, "EN": YT + 6.2, "SYNC": YT + 7.0}     # top-layer lanes under the Timer
+# ---------------------------------------------------------------- SYNC
+VX = {"SYNC": CX0 - 3.6}                         # vertical joining the rows, under the RJ45 end
+TRUNK = {"SYNC": YT + 7.0}                       # top-layer lane under the Timer
 for i, (bus, _, pin, _, _) in enumerate(carrier.BUS):
     ref = carrier.bus_ref(N, i)
     b.track(b.net_of(ref, 1), F, SIG, P("U1", pin), P(ref, 1))
@@ -172,9 +172,33 @@ for i, (bus, _, pin, _, _) in enumerate(carrier.BUS):
     b.via(bus, x, y)
     ends = [y]
     for upper in ((True, False) if ROWS == 2 else (True,)):
-        pads = sorted(P(s.ref, BUS_PAD[bus]) for s in SLOTS if s.upper == upper)
-        b.track(bus, B, SIG, (x, pads[0][1]), *pads)
-        ends.append(pads[0][1])
+        vias = []
+        for s in SLOTS:
+            if s.upper != upper:
+                continue
+            pad = P(s.ref, SYNC_PAD)
+            out = -SYNC_VIA_OUT if pad[0] < s.t(s.cx, 0)[0] else SYNC_VIA_OUT
+            v = (round(pad[0] + out, 4), pad[1])
+            b.track(bus, F, SIG, pad, v)
+            b.via(bus, *v)
+            vias.append(v)
+        row_y = vias[0][1]
+        assert all(abs(v[1] - row_y) < 1e-3 for v in vias), vias
+        vias.sort()
+        if N == 8 and upper:
+            # The last via lies beyond the VSYS spine, which runs the height of the board on
+            # the bottom layer. Bring it down beside the Timer and hop the spine on the top
+            # layer, between the pin row and the UART lanes, back to the via before it.
+            far, prev = vias.pop(), vias[-1]
+            assert prev[0] < SPINE8 < far[0], (prev, far)
+            hop_y = YT - 2.5
+            b.track(bus, B, SIG, far, (far[0], hop_y))
+            b.via(bus, far[0], hop_y)
+            b.track(bus, F, SIG, (far[0], hop_y), (prev[0], hop_y))
+            b.via(bus, prev[0], hop_y)
+            b.track(bus, B, SIG, (prev[0], hop_y), prev)
+        b.track(bus, B, SIG, *sorted(vias + [(x, row_y)]))
+        ends.append(row_y)
     b.track(bus, B, SIG, (x, min(ends)), (x, max(ends)))
 
 # ---------------------------------------------------------------- power and ground
@@ -183,7 +207,7 @@ vsys = P("U1", 31)
 rail_y = {True: 2 * YC - (CYB + RAIL), False: CYB + RAIL}
 rows = (True, False) if ROWS == 2 else (True,)
 if N == 8:                                        # spine right of the Timer, under the last column
-    SPINE_X = 86.5
+    SPINE_X = SPINE8
     b.track("VSYS", B, 0.8, vsys, (vsys[0], YB - 1.9), (SPINE_X, YB - 1.9))
     for upper in rows:
         b.track("VSYS", B, 1.0, (SPINE_X, YB - 1.9), (SPINE_X, rail_y[upper]))
@@ -238,11 +262,6 @@ for s in SLOTS:
     b.text("ANT", *s.t(s.cx, CYB - 9.0), size=1.0)
     b.text("USB", *s.t(s.cx, CYB + 9.1), size=1.0)
     b.text("%d" % s.n, *s.t(s.cx - 4.5, CYB - 4.5), layer=BSILK, size=2.0, thick=0.3)
-    for pad, name in ((17, "EN"), (19, "SYNC"), (21, "BOOT")):
-        x, y = P(s.ref, pad)
-        b.text(name, x + 3.0, y - 1.25, BSILK, size=0.8)
-    b.text("solder EN SYNC", *s.t(s.cx, CYB - 8.4), layer=BSILK, size=0.8)
-    b.text("BOOT this side", *s.t(s.cx, CYB - 7.2), layer=BSILK, size=0.8)
 b.text("Open FPV Timer", 40.0, YC - 1.5, BSILK, size=1.5, thick=0.25)
 b.text("carrier %d v0.1 draft" % N, 40.0, YC + 1.0, BSILK, size=1.0)
 
