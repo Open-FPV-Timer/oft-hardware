@@ -124,7 +124,7 @@ was printed and fitted; everything about how this board sits in it is new.
 
 | Part | What it does | How to print |
 |---|---|---|
-| `body` | Open box. The board sits on four corner posts, held by an M2 x 5 screw in each corner hole. The Node hangs below the board, the Timer stands above it | Floor down, as exported. No supports |
+| `body` | Open box. The board sits on four tall corner posts, held by an M2 x 5 screw in each corner hole. It goes in **Node side up**: the Node is under the lid and the Timer hangs below the board | Floor down, as exported. No supports |
 | `lid-countersunk` | Lid for **countersunk** M3 screws: a 3 mm plate with a cone at each of its three holes, so the heads sit flush. A tab fills the wall above the Ethernet jack | Outer face down, as exported. No supports |
 | `lid-socket-cap` | Lid for **socket cap** M3 screws: 4.8 mm tall and hollow underneath, with a pocket at each hole that the whole head goes into. Same tab | Outer face down, as exported. No supports |
 | `base-flat` | Plate for sitting on the ground. Its sides are flush with the case's | Plate down, as exported. No supports |
@@ -132,7 +132,7 @@ was printed and fitted; everything about how this board sits in it is new.
 | `base-strap` | Saddle with one tunnel for a 20 mm strap | Standing on its far end, as exported. No supports |
 
 Print one lid, whichever suits the screws you have; the body is the same for both. Case
-91 x 35 mm (96 mm over the lid's end lug) and 38 mm tall with the countersunk lid, 39 mm with
+91 x 35 mm (96 mm over the lid's end lug) and 39 mm tall with the countersunk lid, 40 mm with
 the socket cap lid. A base adds 3 mm underneath and nothing at the sides.
 
 ![Flat base: flush with the sides](pictures/assembly-flat.png)
@@ -142,6 +142,11 @@ The two lids, seen from underneath: countersunk, then socket cap.
 ![Lid for countersunk screws](pictures/part-lid-countersunk.png)
 ![Lid for socket cap screws](pictures/part-lid-socket-cap.png)
 
+- **The lid faces the gate, and the Node is under it.** The base is the side against the
+  pipe, so the lid is the face that looks at the gate opening. The board therefore goes in
+  turned over from how it is drawn above: Node and antenna up, under the lid, with only the
+  lid's plastic between the antenna and the gate; Timer down, towards the base. The corner
+  screws go in from the Node's side.
 - **One opening, for the Ethernet jack.** To reach either USB-C port, take the lid off, undo
   the four M2 screws and lift the board out.
 - **Nothing sticks out of the long sides.** The lid's screws are inside the two Ethernet-end
@@ -151,9 +156,12 @@ The two lids, seen from underneath: countersunk, then socket cap.
 - **A base slides on from the Ethernet end** until the case meets the stop at the base's
   Ethernet end, and clicks. A pull on the Ethernet cable pushes the case into the stop. Pull
   the case towards the far end to take it off.
-- **The antenna** has the space under the board and under the Timer's overhang. There is no
-  hole for one.
-- **Vents** in both long walls beside the PoE module.
+- **The antenna** has the space above the board, under the lid: 10 mm, of which the Node
+  takes 7. There is no hole for one.
+- **The Ethernet jack is low in the end wall**, since the Timer hangs down. The board still
+  drops in from the top: the slot runs up to the rim, and a long tab on the lid closes the
+  part of it above the jack.
+- **Vents** in both long walls beside the PoE module, low in the case.
 
 ### Hardware
 
@@ -177,26 +185,29 @@ Parameters at the top of `case.scad`.
 | Parameter | Value | What to measure |
 |---|---|---|
 | `mh_inset` | 2.0 | Centre of a corner mounting hole to each edge of the protoboard. Measured with a ruler on the built board, not calipers. The posts and their screw holes follow it |
-| `under_h` | 10 | Room below the protoboard. Measured on the built board: 7 mm from the underside of the protoboard to the top of the Node's USB-C, its highest point. That leaves 3 mm, which the antenna lead shares |
+| `node_room` | 10 | Room on the Node's side of the protoboard, under the lid. Measured on the built board: 7 mm from the protoboard to the top of the Node's USB-C, its highest point. That leaves 3 mm, which the antenna and its lead share |
 | `board_t` | 1.6 | Protoboard thickness |
 | `stack_h` | 17 | Top of the PoE module above the protoboard's top face. Measured on the first build, where the Timer sat the same way |
 | `timer_over`, `jack_out` | 15.2, 2.9 | Timer board past the `A` end, and the jack past the Timer board. From Waveshare's drawing |
 | `jack_z`, `jack_w`, `jack_h` | 4, 16, 13.5 | The jack: bottom above the protoboard, width, height |
-| `head` | 4 | Room above the PoE module, for the wires that run on top |
+| `head` | 5 | Room beyond the PoE module, on the Timer's side: the wires there, and it keeps the jack off the floor at the Ethernet end |
 | `fit`, `slide_fit` | 0.25, 0.25 | Board to walls, and foot to base |
 
 Checked in the model only: the parts do not overlap each other, the mock electronics or the
 pipe, and there is solid post under each corner screw. Not checked: any fit against real
 parts, and these in particular.
 
-- **Corner screws beside the Timer.** The two corner holes at the `A` end are about 2.5 mm
-  from the Timer board's edge. On the built board it is tight but nothing covers them.
+- **The two posts beside the Timer.** The corner holes at the `A` end are about 2.5 mm from
+  the Timer board's edge, and with the board Node side up the posts under them stand beside
+  the Timer for its whole height: 23 mm tall, 4.6 mm wide, cut back to 0.3 mm from the
+  Timer board. On the built board the holes are tight but clear; whether the PoE module
+  leaves room for a post beside it is the first thing to check on a print.
 - **The lid columns in the Ethernet-end corners** leave 0.5 mm to the Timer board's edge.
 - **The sunk heads leave thin edges.** At the two corner screws, the countersunk lid has
   0.6 mm of plastic between the cone and the lid's long edge, and the socket cap lid 0.8 mm
   between the pocket and that edge. They are in the lid, not the walls.
-- **The wires on top** pass the corner screw heads and the outer rows; `head` and the
-  2.5 mm beside the Timer are all the room they have.
+- **The wires**, which are on the Timer's side of the board, pass those two posts in the
+  outer rows; `head` and the 2.5 mm beside the Timer are all the room they have.
 - **The click tongue and the clips** carry over from a printed case, but on a narrower base.
 
 ## The drawing

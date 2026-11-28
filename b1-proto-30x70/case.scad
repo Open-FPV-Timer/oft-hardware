@@ -1,10 +1,11 @@
 // OFT build B1 on a 30 x 70 mm protoboard: screw-closed case with slide-on bases.
 //
 // Printed parts:
-//   body        open box. The board sits on four corner posts and is held by an M2 x 5 screw
-//               in each corner hole. The Node hangs below the board, the Timer stands above
-//               it. One opening, for the Ethernet jack: the board comes out of the case to
-//               reach either USB-C port. The body's bottom edge is a dovetail foot, set in
+//   body        open box. The board sits on four tall corner posts and is held by an M2 x 5
+//               screw in each corner hole. It goes in NODE SIDE UP: the Node and its antenna
+//               are under the lid, which is the face that looks at the gate, and the Timer
+//               hangs below the board, towards the base and the pipe. One opening, for the
+//               Ethernet jack: the board comes out of the case to reach either USB-C port. The body's bottom edge is a dovetail foot, set in
 //               from the sides, that the bases slide onto.
 //               Print as exported (floor down), no supports.
 //   lid         closes the box with three M3 screws: two into columns inside the Ethernet-end
@@ -49,22 +50,23 @@ board_w = 30;
 board_t = 1.6;           // protoboard thickness
 mh_inset = 2.0;          // corner mounting holes: centre to each edge. Measured with a ruler, not calipers
 mh_tap = 1.7;            // hole an M2 screw cuts its own thread into
-under_h = 10;            // room under the board. The Node's USB-C reaches 7 below it (measured), which leaves 3
-stack_h = 17;            // tallest part above the board's top face (the PoE module), as measured on the first build
+node_room = 10;          // room on the Node's side of the board, under the lid. The Node's USB-C stands 7 off the board (measured), which leaves 3 for the antenna lead
+stack_h = 17;            // tallest part on the Timer's side of the board (the PoE module), as measured on the first build
 timer_over = 15.2;       // Timer board past the A end of the protoboard (Waveshare's drawing)
 jack_out = 2.9;          // Ethernet jack past the end of the Timer board
 jack_w = 16;
 jack_h = 13.5;
-jack_z = 4;              // jack bottom above the protoboard's top face
+jack_z = 4;              // the jack's near face, off the protoboard's Timer-side face
 jack_yc = 15;            // jack centre across the board: the Timer sits on the centre line
 timer_gap = 2.5;         // protoboard top to the underside of the Timer board (its pin strips)
 
 /* [Case] */
 fit = 0.25;              // board to body, lid parts to body
-head = 4;                // spare height above stack_h, for the wires on top
+head = 5;                // spare depth beyond stack_h on the Timer's side: the wires there, and the jack clears the floor at the Ethernet end
 end_room = 1;            // the jack's face sits this far inside the end wall's outer face
 wall = 2.0;              // also the floor
 post_d = 4.6;
+post_clear = 0.3;        // a post beside the Timer stops this far short of the Timer board's edge
 m3_tap = 2.7;            // hole an M3 screw cuts its own thread into
 m3_free = 3.4;
 lug_d = 7.6;             // lug on the far end; wide enough to carry a sunk screw head
@@ -105,10 +107,12 @@ vee = [26, 5];           // groove that sits on the pole: width, depth
 $fn = 72;
 e = 0.01;
 floor_t = wall;
-zbt = floor_t + under_h;             // underside of the protoboard
-T = zbt + board_t;                   // its top face
-H = stack_h + head;                  // inside height above the board
-ztop = T + H;                        // top of the walls
+timer_room = stack_h + head;         // depth below the board, where the Timer hangs
+zbt = floor_t + timer_room;          // underside of the protoboard: its Timer side
+T = zbt + board_t;                   // its upper face: the Node's side
+ztop = T + node_room;                // top of the walls
+jack_hi = zbt - jack_z;              // the jack, below the board: its face nearest the board
+jack_lo = jack_hi - jack_h;
 jack_over = timer_over + jack_out;   // jack face past the A end
 xj = -jack_over;                     // the jack's face; the bases stop the body here
 xa = xj - end_room;                  // Ethernet end of the body
@@ -191,9 +195,15 @@ module lid_screws(d, z0, h) {
 // one corner post: a column under a mounting hole, joined to the side wall beside it
 module post(p) {
     side = p[1] < cy ? -fit - e : board_w + fit + e;
-    hull() {
-        translate([p[0], p[1], floor_t - e]) cylinder(d = post_d, h = zbt - floor_t + e);
-        box([p[0] - post_d / 2, min(side, p[1]), floor_t - e], [p[0] + post_d / 2, max(side, p[1]), zbt]);
+    near = p[0] < timer_x1;          // beside the Timer: keep clear of its board's edge
+    lim = cy - 10.5 - post_clear;
+    intersection() {
+        hull() {
+            translate([p[0], p[1], floor_t - e]) cylinder(d = post_d, h = zbt - floor_t + e);
+            box([p[0] - post_d / 2, min(side, p[1]), floor_t - e], [p[0] + post_d / 2, max(side, p[1]), zbt]);
+        }
+        if (near) box([-50, p[1] < cy ? -50 : board_w - lim, -1], [200, p[1] < cy ? lim : board_w + 50, zbt + 1]);
+        else box([-50, -50, -1], [200, 200, zbt + 1]);
     }
 }
 
@@ -221,12 +231,13 @@ module body() {
             }
         }
         // the corner screws
-        for (p = holes) translate([p[0], p[1], zbt - 7]) cylinder(d = mh_tap, h = 8);
-        // Ethernet jack: a slot open to the top, so the board drops in
-        box([xa - 1, jack_yc - jack_w / 2 - 0.4, T + jack_z - 0.5], [xa + wall + 1, jack_yc + jack_w / 2 + 0.4, ztop + 1]);
-        // vents beside the PoE module
+        for (p = holes) translate([p[0], p[1], zbt - 7]) cylinder(d = mh_tap, h = 8);   // M2 x 5 through the board leaves 3.4 in the post
+        // Ethernet jack: a slot open to the top, so the board drops in. The lid's tab closes
+        // the part of it above the jack.
+        box([xa - 1, jack_yc - jack_w / 2 - 0.4, jack_lo - 0.5], [xa + wall + 1, jack_yc + jack_w / 2 + 0.4, ztop + 1]);
+        // vents beside the PoE module, which is now low in the case
         for (y = [-yo - 1, board_w + fit - 1], i = [0 : 4])
-            box([8 + i * 7, y, ztop - 13], [10 + i * 7, y + wall + 2, ztop - 2]);
+            box([8 + i * 7, y, dt + ch + 1.5], [10 + i * 7, y + wall + 2, dt + ch + 12.5]);
         // lid screw holes
         lid_screws(m3_tap, ztop - 14, 15);
         // the Ethernet end's bottom edge, sloped to meet the base's stop
@@ -239,7 +250,7 @@ module body() {
 // ---------------------------------------------------------------- lid
 
 module lid() {
-    jz = T + jack_z + jack_h + 0.4;
+    jz = jack_hi + 0.4;              // the tab comes down to just above the jack
     difference() {
         union() {
             difference() {
@@ -362,25 +373,28 @@ function colx(i) = col0 + i * pitch; // i: 0 = A
 function rowy(r) = row1 + (r - 1) * pitch;
 
 module electronics() {
+    // The board is in Node side up: turned over about its long axis, so what the layout
+    // drawing shows at row r is here at y = board_w - rowy(r), and the Timer hangs below.
+    function fy(r) = board_w - rowy(r);
     // protoboard
     color("goldenrod") difference() {
         box([0, 0, zbt], [board_l, board_w, T]);
         for (p = holes) translate([p[0], p[1], zbt - 1]) cylinder(d = 2.2, h = board_t + 2);
     }
-    // the four M2 screw heads
+    // the four M2 screw heads, on the Node's side
     color("silver") for (p = holes) translate([p[0], p[1], T]) cylinder(d = 3.8, h = 1.6);
-    // Timer: its board on pin strips in rows 2 and 9, columns B to Q
-    color("black") for (r = [2, 9]) box([colx(1) - 1.27, rowy(r) - 1.27, T], [colx(16) + 1.27, rowy(r) + 1.27, T + timer_gap]);
-    color("royalblue") box([-timer_over, cy - 10.5, T + timer_gap], [timer_x1, cy + 10.5, T + timer_gap + 1.6]);
-    color("lightgray") box([xj, jack_yc - jack_w / 2, T + jack_z], [xj + 21, jack_yc + jack_w / 2, T + jack_z + jack_h]);
-    color("dimgray") box([xj + 22, cy - 10.5, T + 10], [timer_x1 - 8, cy + 10.5, T + stack_h]);
-    // Node, under the board: pins in rows 2 and 8, columns R to X, component side down
+    // Timer, below the board: its board on pin strips in rows 2 and 9, columns B to Q
+    color("black") for (r = [2, 9]) box([colx(1) - 1.27, fy(r) - 1.27, zbt - timer_gap], [colx(16) + 1.27, fy(r) + 1.27, zbt]);
+    color("royalblue") box([-timer_over, cy - 10.5, zbt - timer_gap - 1.6], [timer_x1, cy + 10.5, zbt - timer_gap]);
+    color("lightgray") box([xj, jack_yc - jack_w / 2, jack_lo], [xj + 21, jack_yc + jack_w / 2, jack_hi]);
+    color("dimgray") box([xj + 22, cy - 10.5, zbt - stack_h], [timer_x1 - 8, cy + 10.5, zbt - 10]);
+    // Node, above the board: pins in rows 2 and 8, columns R to X, component side up
     ncx = (colx(17) + colx(23)) / 2;
-    ncy = (rowy(2) + rowy(8)) / 2;
-    color("black") for (r = [2, 8]) box([colx(17) - 1.27, rowy(r) - 1.27, zbt - 2.5], [colx(23) + 1.27, rowy(r) + 1.27, zbt]);
-    color("dimgray") box([ncx - 10.5, ncy - 8.9, zbt - 2.5 - 1.2], [ncx + 10.5, ncy + 8.9, zbt - 2.5]);
-    color("gainsboro") box([ncx - 6, ncy - 6, zbt - 2.5 - 1.2 - 2.4], [ncx + 6, ncy + 6, zbt - 2.5 - 1.2]);
-    color("lightgray") box([ncx + 10.5 - 7.3, ncy - 4.5, zbt - 2.5 - 1.2 - 3.2], [ncx + 10.5, ncy + 4.5, zbt - 2.5 - 1.2]);
+    ncy = (fy(2) + fy(8)) / 2;
+    color("black") for (r = [2, 8]) box([colx(17) - 1.27, fy(r) - 1.27, T], [colx(23) + 1.27, fy(r) + 1.27, T + 2.5]);
+    color("dimgray") box([ncx - 10.5, ncy - 8.9, T + 2.5], [ncx + 10.5, ncy + 8.9, T + 2.5 + 1.2]);
+    color("gainsboro") box([ncx - 6, ncy - 6, T + 2.5 + 1.2], [ncx + 6, ncy + 6, T + 2.5 + 1.2 + 2.4]);
+    color("lightgray") box([ncx + 10.5 - 7.3, ncy - 4.5, T + 2.5 + 1.2], [ncx + 10.5, ncy + 4.5, T + 7]);
 }
 module pipe_solid() { translate([xs0 - 40, cy, zc]) rotate([0, 90, 0]) cylinder(d = pipe_od, h = xb - xs0 + 80); }
 
