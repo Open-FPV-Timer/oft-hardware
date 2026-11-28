@@ -166,7 +166,7 @@ Parameters at the top of `case.scad`.
 
 | Parameter | Value | What to measure |
 |---|---|---|
-| `mh_inset` | 2.0 | Centre of a corner mounting hole to each edge of the protoboard. Looks right against the board; not put to calipers. The posts and their screw holes follow it |
+| `mh_inset` | 2.0 | Centre of a corner mounting hole to each edge of the protoboard. Measured with a ruler on the built board, not calipers. The posts and their screw holes follow it |
 | `under_h` | 10 | Room below the protoboard. Measured on the built board: 7 mm from the underside of the protoboard to the top of the Node's USB-C, its highest point. That leaves 3 mm, which the antenna lead shares |
 | `board_t` | 1.6 | Protoboard thickness |
 | `stack_h` | 17 | Top of the PoE module above the protoboard's top face. Measured on the first build, where the Timer sat the same way |
