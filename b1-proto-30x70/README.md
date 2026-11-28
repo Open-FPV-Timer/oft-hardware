@@ -124,23 +124,29 @@ was printed and fitted; everything about how this board sits in it is new.
 
 | Part | What it does | How to print |
 |---|---|---|
-| `body` | Open box. The board sits on four corner posts, held by an M2 x 5 screw in each corner hole. The Node hangs below the board, the Timer stands above it | Floor down, as exported. No supports |
-| `lid` | Closes the box with three M3 screws; a tab fills the wall above the Ethernet jack | Outer face down, as exported. No supports |
+| `body` | Open box. The board sits on four corner posts, one under each corner hole. The Node hangs below the board, the Timer stands above it | Floor down, as exported. No supports |
+| `lid` | Four hollow legs stand on the board's corners. A long M2 screw down each leg goes through the board and into the post, so the same four screws hold the lid and the board. A tab fills the wall above the Ethernet jack | Outer face down, legs up, as exported. No supports |
 | `base-flat` | Plate for sitting on the ground. Its sides are flush with the case's | Plate down, as exported. No supports |
 | `base-pvc-half-inch`, `base-pvc-three-quarter-inch` | Snap-on pipe clip with an M3 set screw against rotation, threaded straight into the plastic | Standing on its far end, as exported. No supports |
 | `base-strap` | Saddle with one tunnel for a 20 mm strap | Standing on its far end, as exported. No supports |
 
-Case 91 x 35 x 37 mm (95 mm over the lid's end lug). A base adds 3 mm underneath and nothing
-at the sides.
+Case 91 x 35 x 37 mm, with nothing sticking out of it. A base adds 3 mm underneath and
+nothing at the sides.
 
 ![Flat base: flush with the sides](pictures/assembly-flat.png)
 
-- **One opening, for the Ethernet jack.** To reach either USB-C port, take the lid off, undo
-  the four M2 screws and lift the board out.
-- **Nothing sticks out of the long sides.** The lid's screws are inside the two Ethernet-end
-  corners and on the far end wall, so a base is exactly as wide as the case. The dovetail
-  foot is set in from the sides for the same reason: the base's rails sit under the case's
-  sloped lower edges.
+- **One opening, for the Ethernet jack.** To reach either USB-C port, undo the four screws,
+  take the lid off and lift the board out.
+- **Four screws for everything.** Each sits on a shoulder inside its leg, below the top of
+  the lid. How far below depends on the screw: set `lid_screw_l` to the length you have and
+  the shoulder moves so that 4.5 mm of screw goes into the post. An M2 x 20 sits 9 mm down;
+  anything from about M2 x 10 to M2 x 30 works, and `build.sh` prints a warning outside
+  that.
+- **Nothing sticks out of the case.** There are no lugs. The dovetail foot is set in from
+  the sides for the same reason: the base's rails sit under the case's sloped lower edges,
+  so a base is exactly as wide as the case.
+- **With the lid off**, the board can still be screwed to its posts with M2 x 5 screws, for
+  bench work.
 - **A base slides on from the Ethernet end** until the case meets the stop at the base's
   Ethernet end, and clicks. A pull on the Ethernet cable pushes the case into the stop. Pull
   the case towards the far end to take it off.
@@ -150,8 +156,9 @@ at the sides.
 
 ### Hardware
 
-- 4 x M2 x 5 screw: board to the corner posts. They cut their own thread.
-- 3 x M3 screw, 8 to 12 mm: lid.
+- 4 x long M2 screw, all the same length (`lid_screw_l`, 20 mm as drawn): lid and board
+  together. They cut their own thread in the posts.
+- Optional, 4 x M2 x 5: the board alone, with the lid off.
 - Pipe base only: 1 x M3 screw, 8 or 10 mm, as a set screw. It cuts its own thread in the
   clip; there is no nut.
 
@@ -167,6 +174,7 @@ Parameters at the top of `case.scad`.
 
 | Parameter | Value | What to measure |
 |---|---|---|
+| `lid_screw_l` | 20 | **The length of your long M2 screws, under the head.** Set it before exporting |
 | `mh_inset` | 2.0 | Centre of a corner mounting hole to each edge of the protoboard. Measured with a ruler on the built board, not calipers. The posts and their screw holes follow it |
 | `under_h` | 10 | Room below the protoboard. Measured on the built board: 7 mm from the underside of the protoboard to the top of the Node's USB-C, its highest point. That leaves 3 mm, which the antenna lead shares |
 | `board_t` | 1.6 | Protoboard thickness |
@@ -182,7 +190,11 @@ parts, and these in particular.
 
 - **Corner screws beside the Timer.** The two corner holes at the `A` end are about 2.5 mm
   from the Timer board's edge. On the built board it is tight but nothing covers them.
-- **The lid columns in the Ethernet-end corners** leave 0.6 mm to the Timer board's edge.
+- **The two legs beside the Timer** stop 0.3 mm short of the Timer board's edge, which leaves
+  the head's bore open on that side. The two far legs are whole tubes.
+- **The legs** are 21 mm tall and 6 mm wide, printed standing on the lid. They are the
+  delicate part until the case is screwed together.
+- **The screw's shoulder** is a small ring printed as an overhang inside each leg.
 - **The wires on top** pass the corner screw heads and the outer rows; `head` and the
   2.5 mm beside the Timer are all the room they have.
 - **The click tongue and the clips** carry over from a printed case, but on a narrower base.
