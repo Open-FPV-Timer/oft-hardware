@@ -77,10 +77,12 @@ These are the Timer's default pins, so a freshly flashed Timer needs no setup.
   hole in the outer row beside that pin and is bridged, on the underside, to the pin's solder
   joint. At the Node end it is soldered straight to the tip of the Node's pin, which sticks
   up through the board.
-- Ryan's note says row `1` for the Timer end. Row `1` is the outer row beside VSYS (`P2`) and
-  the other row-`2` pins; the outer row beside GP4, GP5, GP6 and the GND at `O9` is row
-  `10`. Which holes each wire used was not recorded, and neither was which GND pin (the
-  Timer has GND at `E9`, `J9`, `O9`, `E2` and `O2`; `O9` is the one drawn).
+- The outer rows are row `1`, beside the Timer's row-`2` pins, and row `10`, beside its
+  row-`9` pins. So VSYS at `P2` is reached through `P1`, and GP4, GP5 and GP6 through `L10`,
+  `K10` and `I10`.
+- **Ground: use `O9`, as in the table.** The first board built takes ground from the pin
+  beside VSYS, `O2`, because it was wired before this layout was drawn. Both work; `O9`
+  keeps the ground wire on the same side as the three signal wires.
 - The drawing joins each pair with a dotted line, which is not a route.
 - Nothing is wired to the pads on the back of the XIAO: SYNC is on D8, and the Timer restarts
   and updates the Node over the two data wires
@@ -160,12 +162,12 @@ from that run.
 
 ### Measure before printing
 
-Parameters at the top of `case.scad`. The first three were not measured at all.
+Parameters at the top of `case.scad`.
 
 | Parameter | Value | What to measure |
 |---|---|---|
-| `mh_inset` | 2.0 | Centre of a corner mounting hole to each edge of the protoboard. **A guess.** The posts and their screw holes follow it |
-| `under_h` | 10 | Depth below the protoboard that the Node, its USB-C and the antenna lead need |
+| `mh_inset` | 2.0 | Centre of a corner mounting hole to each edge of the protoboard. Looks right against the board; not put to calipers. The posts and their screw holes follow it |
+| `under_h` | 10 | Room below the protoboard. Measured on the built board: 7 mm from the underside of the protoboard to the top of the Node's USB-C, its highest point. That leaves 3 mm, which the antenna lead shares |
 | `board_t` | 1.6 | Protoboard thickness |
 | `stack_h` | 17 | Top of the PoE module above the protoboard's top face. Measured on the first build, where the Timer sat the same way |
 | `timer_over`, `jack_out` | 15.2, 2.9 | Timer board past the `A` end, and the jack past the Timer board. From Waveshare's drawing |
@@ -177,9 +179,8 @@ Checked in the model only: the parts do not overlap each other, the mock electro
 pipe, and there is solid post under each corner screw. Not checked: any fit against real
 parts, and these in particular.
 
-- **Corner screws beside the PoE module.** The two corner holes at the `A` end are about
-  2.5 mm from the Timer board's edge. If the PoE module is wider than the Timer board, a
-  screwdriver may not reach them straight down.
+- **Corner screws beside the Timer.** The two corner holes at the `A` end are about 2.5 mm
+  from the Timer board's edge. On the built board it is tight but nothing covers them.
 - **The lid columns in the Ethernet-end corners** leave 0.6 mm to the Timer board's edge.
 - **The wires on top** pass the corner screw heads and the outer rows; `head` and the
   2.5 mm beside the Timer are all the room they have.
