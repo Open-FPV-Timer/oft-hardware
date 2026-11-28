@@ -127,7 +127,7 @@ was printed and fitted; everything about how this board sits in it is new.
 | `body` | Open box. The board sits on four corner posts, held by an M2 x 5 screw in each corner hole. The Node hangs below the board, the Timer stands above it | Floor down, as exported. No supports |
 | `lid` | Closes the box with three M3 screws; a tab fills the wall above the Ethernet jack | Outer face down, as exported. No supports |
 | `base-flat` | Plate for sitting on the ground. Its sides are flush with the case's | Plate down, as exported. No supports |
-| `base-pvc-half-inch`, `base-pvc-three-quarter-inch` | Snap-on pipe clip with an M3 set screw against rotation | Standing on its far end, as exported. No supports |
+| `base-pvc-half-inch`, `base-pvc-three-quarter-inch` | Snap-on pipe clip with an M3 set screw against rotation, threaded straight into the plastic | Standing on its far end, as exported. No supports |
 | `base-strap` | Saddle with one tunnel for a 20 mm strap | Standing on its far end, as exported. No supports |
 
 Case 91 x 35 x 37 mm (95 mm over the lid's end lug). A base adds 3 mm underneath and nothing
@@ -152,7 +152,8 @@ at the sides.
 
 - 4 x M2 x 5 screw: board to the corner posts. They cut their own thread.
 - 3 x M3 screw, 8 to 12 mm: lid.
-- Pipe base only: 1 x M3 screw, 8 or 10 mm, and 1 x M3 nut for the set screw.
+- Pipe base only: 1 x M3 screw, 8 or 10 mm, as a set screw. It cuts its own thread in the
+  clip; there is no nut.
 
 ### Building it
 

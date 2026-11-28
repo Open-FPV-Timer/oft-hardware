@@ -14,7 +14,7 @@
 //   base-flat   plate for sitting on the ground. Its sides are flush with the case's.
 //               Print as exported (plate down), no supports.
 //   base-pvc    snap-on clip for PVC pipe (pipe = "1/2" or "3/4") with an M3 set screw
-//               against rotation. Print as exported (standing on its far end), no supports.
+//               against rotation, threaded straight into the plastic. Print as exported (standing on its far end), no supports.
 //   base-strap  saddle with one tunnel for a 20 mm strap.
 //               Print as exported (standing on its far end), no supports.
 //
@@ -87,8 +87,7 @@ clip_open = 100;         // mouth angle; faces sideways so the case hangs from s
 clip_gap = 5;            // plate to clip, room for the zip tie slot
 grip_l = 40;             // length of the full clip, from the far end
 tie = [6, 2.8];          // zip tie slot
-boss_t = 6.5;            // set screw boss: an M3 x 8 or x 10 reaches the pipe
-nut = [5.7, 2.8];        // M3 nut slot: across flats, thickness
+boss_t = 6.5;            // set screw boss, threaded by the screw itself: an M3 x 8 or x 10 reaches the pipe
 
 /* [Strap saddle] */
 strap = [21, 4.2];       // tunnel for a 20 mm strap
@@ -307,9 +306,8 @@ module base_pvc() {
         translate([xs0 - 1, cy, zc]) rotate([0, 90, 0]) cylinder(d = clip_id, h = xb - xs0 + 2);
         box([xs0 - 1, cy, zc - r + e], [xb - grip_l, cy + 40, zb - e]);     // keep the mouth side open
         for (x = tie_x) box([x - tie[0] / 2, -50, zb - 1 - tie[1]], [x + tie[0] / 2, 100, zb - 1]);
-        // set screw and its nut, which slides in from the Ethernet end
-        translate([xs0 + 5, cy, zc - r - boss_t - 1]) cylinder(d = m3_free, h = boss_t + 4);
-        box([xs0 - 1, cy - nut[0] / 2, zc - r - 1.8 - nut[1]], [xs0 + 5 + 3.4, cy + nut[0] / 2, zc - r - 1.8]);
+        // set screw: it cuts its own thread through the boss and bears on the pipe. No nut.
+        translate([xs0 + 5, cy, zc - r - boss_t - 1]) cylinder(d = m3_tap, h = boss_t + 4);
     }
 }
 
