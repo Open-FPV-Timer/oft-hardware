@@ -1,17 +1,18 @@
 // OFT build B1 on a 30 x 70 mm protoboard: screw-closed case with slide-on bases.
 //
 // Printed parts:
-//   body        open box. The board sits on four corner posts, one under each corner hole. The Node hangs below the board, the Timer stands above
+//   body        open box. The board sits on four corner posts and is held by an M2 x 5 screw
+//               in each corner hole. The Node hangs below the board, the Timer stands above
 //               it. One opening, for the Ethernet jack: the board comes out of the case to
 //               reach either USB-C port. The body's bottom edge is a dovetail foot, set in
 //               from the sides, that the bases slide onto.
 //               Print as exported (floor down), no supports.
-//   lid         has four hollow legs that stand on the board's corners. One long M2 screw goes
-//               down each leg, through the board's corner hole and into the post under it, so
-//               the same four screws hold the lid and the board, and nothing sticks out of
-//               the case. The screw head sits on a shoulder inside the leg, below the top of
-//               the lid; how far below follows from the screw's length (lid_screw_l).
-//               A tab fills the wall above the Ethernet jack.
+//   lid         closes the box with three M3 screws: two into columns inside the Ethernet-end
+//               corners and one into a lug on the far end, so nothing sticks out of the long
+//               sides. The screw heads are sunk below the lid's top. Two lids, one body:
+//               lid_style = "countersunk" is a 3 mm plate with a cone at each hole;
+//               lid_style = "cap" is a 4.8 mm lid, hollow underneath, with a pocket at each
+//               hole for a socket cap head. A tab fills the wall above the Ethernet jack.
 //               Print as exported (outer face down), no supports.
 //   base-flat   plate for sitting on the ground. Its sides are flush with the case's.
 //               Print as exported (plate down), no supports.
@@ -35,6 +36,7 @@
 // since removed), which was printed and fitted.
 
 part = "assembly"; // [assembly, body, lid, base-flat, base-pvc, base-strap, check]
+lid_style = "countersunk"; // [countersunk, cap]  which M3 screw heads the lid is for
 base = "pvc";      // [flat, pvc, strap, none]  base shown in the assembly
 pipe = "1/2";      // [1/2, 3/4]
 explode = 0;
@@ -62,15 +64,15 @@ fit = 0.25;              // board to body, lid parts to body
 head = 4;                // spare height above stack_h, for the wires on top
 end_room = 1;            // the jack's face sits this far inside the end wall's outer face
 wall = 2.0;              // also the floor
-lid_t = 2.0;
 post_d = 4.6;
-lid_screw_l = 20;        // length of the four long M2 screws (under the head). SET THIS to the screws you have
-thread_len = 4.5;        // how much of each screw bites into its post
-m2_free = 2.3;
-m2_head = 4.2;           // bore the screw head and the driver go down
-leg_d = 6.0;
-leg_clear = 0.3;         // a leg stops this far short of the Timer board's edge
-m3_tap = 2.7;            // hole an M3 screw cuts its own thread into (pipe clip set screw)
+m3_tap = 2.7;            // hole an M3 screw cuts its own thread into
+m3_free = 3.4;
+lug_d = 7.6;             // lug on the far end; wide enough to carry a sunk screw head
+boss_d = 5.0;            // lid screw columns inside the Ethernet-end corners
+csk = [6.4, 1.5];        // countersunk M3: cone diameter at the top (head is 6.0 at most), depth (90 degrees)
+cap = [6.0, 3.2];        // socket cap M3: pocket diameter (head is 5.5), depth (head is 3.0)
+seat_t = 1.6;            // plastic under a cap head
+skin_t = 2.0;            // top skin of the hollow lid
 
 /* [Slide rail] */
 flare = 2.0;             // dovetail: the foot widens this much towards its underside, each side
@@ -120,11 +122,11 @@ zb = -slide_fit - plate_t;           // underside of a base plate
 wg = 0.2;
 xs0 = xj - wg - stop_t;              // Ethernet end of a base
 cy = board_w / 2;
-// Height of the shoulder a lid screw's head sits on, above the board's top face. Short
-// screws put it low in the leg; one too long for the case would stand proud, so the shoulder
-// stops 1.8 below the lid's top and the rest of the screw goes into the post.
-seat_h = max(1.5, min(lid_screw_l - board_t - thread_len, H + lid_t - 1.8));
-tap_depth = lid_screw_l - board_t - seat_h + 1.5;
+boss_x = xa + wall + 2.6;            // lid screw columns inside the Ethernet-end corners
+boss_y = 1.5;
+lid_t = lid_style == "cap" ? cap[1] + seat_t : 3.0;   // height of the lid
+lug_xc = xb + 0.6;                   // lid screw lug outside the far end
+lug_z = dt + ch + 0.8;
 clip_id = pipe_od + pipe_clear;
 zc = zb - (clip_gap + clip_wall + clip_id / 2);
 tie_x = [xs0 + 16, xb - 20];
@@ -136,8 +138,7 @@ strap_x = (xs0 + xb) / 2 - strap[0] / 2;
 holes = [for (x = [mh_inset, board_l - mh_inset], y = [mh_inset, board_w - mh_inset]) [x, y]];
 timer_x1 = timer_over < 0 ? 0 : 63 - timer_over;   // far end of the Timer board
 
-echo(str("CASE: ", xb - xa, " x ", board_w + 2 * yo, " x ", ztop + lid_t));
-echo(str("LID SCREWS: M2 x ", lid_screw_l, ": head ", H + lid_t - seat_h, " below the lid's top, ", lid_screw_l - board_t - seat_h, " into the post", tap_depth > under_h - 1 ? " -- TOO LONG for the post: use a shorter screw or raise under_h" : "", lid_screw_l - board_t - seat_h < 3 ? " -- TOO SHORT: under 3 mm of thread" : ""));
+echo(str("CASE: ", xb - xa, " (", lug_xc + lug_d / 2 - xa, " over the lid lug) x ", board_w + 2 * yo, " x ", ztop + lid_t, " with the ", lid_style, " lid"));
 echo(str("BASE: ", xb - xs0, " x ", board_w + 2 * yo, ", ", -zb, " below the case; pvc ", pipe, " adds ", zb - zc + clip_id / 2 + clip_wall + boss_t, " more; clip mouth ", clip_id * sin(clip_open / 2), " for pipe ", pipe_od));
 
 module box(a, b) { translate(a) cube([b[0] - a[0], b[1] - a[1], b[2] - a[2]]); }
@@ -157,26 +158,34 @@ module shell2d(top = ztop) {
              [w + yo, top], [w + yo, dt + ch], [w + yo - ins - flare, dt], [w + yo - ins, land], [w + yo - ins, 0]]);
 }
 
-// One leg of the lid, on the y = 0 side (both_sides() makes the other): a column over a
-// corner hole, against the side wall, and against the end wall at the far end. On the Timer's
-// side it is cut off just short of the Timer board, which leaves the bore open there.
-module leg_solid(x) {
-    far = x > board_l / 2;
-    intersection() {
-        hull() {
-            translate([x, mh_inset, T + 0.1]) cylinder(d = leg_d, h = ztop - T);
-            box([x - leg_d / 2, 0, T + 0.1], [x + leg_d / 2, mh_inset, ztop + e]);
-            if (far) box([x, 0, T + 0.1], [board_l, mh_inset + leg_d / 2, ztop + e]);
-        }
-        // only the two legs beside the Timer are cut back; the far ones are whole tubes
-        box([-50, 0, 0], [board_l, far ? cy : cy - 10.5 - leg_clear, ztop + 1]);
+// Lid screws: nothing sticks out of the long sides, so that a base is flush with them.
+// Two columns stand inside the Ethernet-end corners, beside the Timer's overhang, and one
+// lug is on the outside of the far end wall.
+module corner_boss() {
+    // the y = 0 side; both_sides() makes the other
+    hull() {
+        translate([boss_x, boss_y, floor_t - e]) cylinder(d = boss_d, h = ztop - floor_t + e);
+        box([xa + wall - e, -fit - e, floor_t - e], [boss_x, boss_y + boss_d / 2, ztop]);
+        box([xa + wall - e, -fit - e, floor_t - e], [boss_x + boss_d / 2, boss_y, ztop]);
     }
 }
-module leg_bores() {
-    for (p = holes) {
-        translate([p[0], p[1], T - 1]) cylinder(d = m2_free, h = seat_h + 1 + e);
-        translate([p[0], p[1], T + seat_h]) cylinder(d = m2_head, h = ztop + lid_t - T - seat_h + 1);
+module end_lug() {
+    // sloped underneath so it prints without support
+    hull() {
+        translate([lug_xc, cy, lug_z + 4.6]) cylinder(d = lug_d, h = ztop - lug_z - 4.6);
+        box([xb - e, cy - lug_d / 2, lug_z], [xb, cy + lug_d / 2, ztop]);
     }
+}
+module lid_cones() {
+    for (p = [[boss_x, boss_y], [boss_x, board_w - boss_y], [lug_xc, cy]])
+        translate([p[0], p[1], ztop + lid_t - csk[1]]) {
+            cylinder(d1 = m3_free, d2 = csk[0], h = csk[1]);
+            translate([0, 0, csk[1] - e]) cylinder(d = csk[0], h = 1);
+        }
+}
+module lid_screws(d, z0, h) {
+    both_sides() translate([boss_x, boss_y, z0]) cylinder(d = d, h = h);
+    translate([lug_xc, cy, z0]) cylinder(d = d, h = h);
 }
 
 // one corner post: a column under a mounting hole, joined to the side wall beside it
@@ -192,7 +201,10 @@ module body() {
     difference() {
         union() {
             difference() {
-                along_x(xa, xb) shell2d();
+                union() {
+                    along_x(xa, xb) shell2d();
+                    end_lug();
+                }
                 // inside: the outline, one wall in. At the Ethernet end the floor starts
                 // further in, behind the sloped edge that meets the base's stop.
                 difference() {
@@ -201,17 +213,22 @@ module body() {
                 }
             }
             intersection() {
-                for (p = holes) post(p);
+                union() {
+                    for (p = holes) post(p);
+                    both_sides() corner_boss();
+                }
                 along_x(xa, xb) shell2d();
             }
         }
         // the corner screws
-        for (p = holes) translate([p[0], p[1], zbt - min(tap_depth, under_h - 1)]) cylinder(d = mh_tap, h = under_h);
+        for (p = holes) translate([p[0], p[1], zbt - 7]) cylinder(d = mh_tap, h = 8);
         // Ethernet jack: a slot open to the top, so the board drops in
         box([xa - 1, jack_yc - jack_w / 2 - 0.4, T + jack_z - 0.5], [xa + wall + 1, jack_yc + jack_w / 2 + 0.4, ztop + 1]);
         // vents beside the PoE module
         for (y = [-yo - 1, board_w + fit - 1], i = [0 : 4])
             box([8 + i * 7, y, ztop - 13], [10 + i * 7, y + wall + 2, ztop - 2]);
+        // lid screw holes
+        lid_screws(m3_tap, ztop - 14, 15);
         // the Ethernet end's bottom edge, sloped to meet the base's stop
         along_y(-50, board_w + 50) polygon([[xa - 1, -1], [xj + dt + 1, -1], [xa - 1, xj + dt - xa + 1]]);
         // click recess
@@ -225,13 +242,27 @@ module lid() {
     jz = T + jack_z + jack_h + 0.4;
     difference() {
         union() {
-            box([xa, -yo, ztop], [xb, board_w + yo, ztop + lid_t]);
-            // the four legs
-            both_sides() for (x = [mh_inset, board_l - mh_inset]) leg_solid(x);
+            difference() {
+                box([xa, -yo, ztop], [xb, board_w + yo, ztop + lid_t]);
+                // the tall lid is hollow underneath, except round its screws
+                if (lid_style == "cap") difference() {
+                    box([xa + wall, -fit, ztop - e], [board_l + fit, board_w + fit, ztop + lid_t - skin_t]);
+                    both_sides() translate([boss_x, boss_y, ztop - 1]) cylinder(d = cap[0] + 2 * wall, h = lid_t + 2);
+                }
+            }
+            hull() {
+                translate([lug_xc, cy, ztop]) cylinder(d = lug_d, h = lid_t);
+                box([xb - 1, cy - lug_d / 2, ztop], [xb, cy + lug_d / 2, ztop + lid_t]);
+            }
+            // ribs that locate the lid between the long walls
+            both_sides() for (x = [22, 48]) box([x, -fit + fit, ztop - 2], [x + 10, 1.2, ztop + e]);
             // wall above the Ethernet jack
             box([xa, jack_yc - jack_w / 2 - 0.4 + fit, jz], [xa + wall, jack_yc + jack_w / 2 + 0.4 - fit, ztop + e]);
         }
-        leg_bores();
+        lid_screws(m3_free, ztop - 1, lid_t + 2);
+        // sink the heads
+        if (lid_style == "cap") lid_screws(cap[0], ztop + lid_t - cap[1], cap[1] + 1);
+        else lid_cones();
     }
 }
 
@@ -336,11 +367,8 @@ module electronics() {
         box([0, 0, zbt], [board_l, board_w, T]);
         for (p = holes) translate([p[0], p[1], zbt - 1]) cylinder(d = 2.2, h = board_t + 2);
     }
-    // the four long M2 screws, heads on the shoulders inside the lid's legs
-    color("silver") for (p = holes) {
-        translate([p[0], p[1], T + seat_h]) cylinder(d = 3.8, h = 1.5);
-        translate([p[0], p[1], T + seat_h - lid_screw_l]) cylinder(d = 1.5, h = lid_screw_l);
-    }
+    // the four M2 screw heads
+    color("silver") for (p = holes) translate([p[0], p[1], T]) cylinder(d = 3.8, h = 1.6);
     // Timer: its board on pin strips in rows 2 and 9, columns B to Q
     color("black") for (r = [2, 9]) box([colx(1) - 1.27, rowy(r) - 1.27, T], [colx(16) + 1.27, rowy(r) + 1.27, T + timer_gap]);
     color("royalblue") box([-timer_over, cy - 10.5, T + timer_gap], [timer_x1, cy + 10.5, T + timer_gap + 1.6]);

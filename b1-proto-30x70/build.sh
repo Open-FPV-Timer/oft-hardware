@@ -14,7 +14,8 @@ IMG=(--imgsize=1600,1100 --colorscheme=Tomorrow --render)
 # name, then the settings that make it
 parts=(
     "body|part=\"body\""
-    "lid|part=\"lid\""
+    "lid-countersunk|part=\"lid\";lid_style=\"countersunk\""
+    "lid-socket-cap|part=\"lid\";lid_style=\"cap\""
     "base-flat|part=\"base-flat\""
     "base-pvc-half-inch|part=\"base-pvc\";pipe=\"1/2\""
     "base-pvc-three-quarter-inch|part=\"base-pvc\";pipe=\"3/4\""
@@ -32,6 +33,7 @@ scad "$@" "${IMG[@]}" --camera=$C,60,0,35,360 -D show_lid=false -o "${OUT}/assem
 scad "$@" "${IMG[@]}" --camera=$C,60,0,35,440 -D explode=30 -o "${OUT}/exploded.png" case.scad
 scad "$@" "${IMG[@]}" --camera=$C,120,0,215,360 -o "${OUT}/assembly-pipe-side.png" case.scad
 scad "$@" "${IMG[@]}" --camera=$C,60,0,35,360 -D 'base="flat"' -o "${OUT}/assembly-flat.png" case.scad
+scad "$@" "${IMG[@]}" --camera=$C,60,0,35,360 -D 'base="flat"' -D 'lid_style="cap"' -o "${OUT}/assembly-flat-socket-cap.png" case.scad
 scad "$@" "${IMG[@]}" --camera=$C,120,0,215,360 -D 'base="strap"' -o "${OUT}/assembly-strap.png" case.scad
 scad "$@" "${IMG[@]}" --camera=$C,90,0,90,280 --projection=o -D 'base="strap"' -o "${OUT}/end-far-strap.png" case.scad
 scad "$@" "${IMG[@]}" --camera=$C,90,0,90,280 --projection=o -D 'base="flat"' -o "${OUT}/end-far-flat.png" case.scad
@@ -42,7 +44,9 @@ scad "$@" "${IMG[@]}" --camera=$C,0,0,0,360 --projection=o -D show_lid=false -D 
 
 # interference checks: each pair must share less than 0.5 mm3
 checks=(
-    "body-lid|check_n=0"
+    "body-lid-countersunk|check_n=0;lid_style=\"countersunk\""
+    "body-lid-socket-cap|check_n=0;lid_style=\"cap\""
+    "case-electronics-socket-cap|check_n=1;lid_style=\"cap\""
     "case-electronics|check_n=1"
     "case-base-flat|check_n=3;base=\"flat\""
     "case-base-pvc|check_n=3;base=\"pvc\""
@@ -75,6 +79,6 @@ for p in 1/2 3/4; do
 done
 # the pictures the README shows
 mkdir -p "${HERE}/pictures"
-for f in assembly exploded assembly-flat assembly-strap end-far-flat top-open; do cp "${HERE}/${OUT}/${f}.png" "${HERE}/pictures/"; done
+for f in assembly exploded assembly-flat assembly-strap end-far-flat top-open part-lid-countersunk part-lid-socket-cap; do cp "${HERE}/${OUT}/${f}.png" "${HERE}/pictures/"; done
 [ "$fail" = 0 ] && echo "interference checks: all clear" || echo "INTERFERENCE FOUND"
 exit $fail
