@@ -26,15 +26,16 @@ for entry in "${parts[@]}"; do
     scad "$@" -D "${entry#*|}" "${IMG[@]}" --viewall --autocenter -o "${OUT}/part-${name}.png" case.scad
 done
 
-C=25,25,8   # camera: look-at x,y,z then rotation x,y,z then distance
+C=26,15,14   # camera: look-at x,y,z then rotation x,y,z then distance
 scad "$@" "${IMG[@]}" --camera=$C,60,0,35,360 -o "${OUT}/assembly.png" case.scad
 scad "$@" "${IMG[@]}" --camera=$C,60,0,35,360 -D show_lid=false -o "${OUT}/assembly-open.png" case.scad
 scad "$@" "${IMG[@]}" --camera=$C,60,0,35,440 -D explode=30 -o "${OUT}/exploded.png" case.scad
 scad "$@" "${IMG[@]}" --camera=$C,120,0,215,360 -o "${OUT}/assembly-pipe-side.png" case.scad
 scad "$@" "${IMG[@]}" --camera=$C,60,0,35,360 -D 'base="flat"' -o "${OUT}/assembly-flat.png" case.scad
 scad "$@" "${IMG[@]}" --camera=$C,120,0,215,360 -D 'base="strap"' -o "${OUT}/assembly-strap.png" case.scad
-scad "$@" "${IMG[@]}" --camera=$C,90,0,90,280 --projection=o -o "${OUT}/end-usb.png" case.scad
-scad "$@" "${IMG[@]}" --camera=$C,90,0,90,280 --projection=o -D 'base="strap"' -o "${OUT}/end-strap.png" case.scad
+scad "$@" "${IMG[@]}" --camera=$C,90,0,90,280 --projection=o -D 'base="strap"' -o "${OUT}/end-far-strap.png" case.scad
+scad "$@" "${IMG[@]}" --camera=$C,90,0,90,280 --projection=o -D 'base="flat"' -o "${OUT}/end-far-flat.png" case.scad
+scad "$@" "${IMG[@]}" --camera=$C,180,0,0,360 --projection=o -D 'base="none"' -o "${OUT}/underside.png" case.scad
 scad "$@" "${IMG[@]}" --camera=$C,90,0,270,280 --projection=o -o "${OUT}/end-ethernet.png" case.scad
 scad "$@" "${IMG[@]}" --camera=$C,90,0,0,360 --projection=o -o "${OUT}/side.png" case.scad
 scad "$@" "${IMG[@]}" --camera=$C,0,0,0,360 --projection=o -D show_lid=false -D 'base="none"' -o "${OUT}/top-open.png" case.scad
@@ -43,7 +44,6 @@ scad "$@" "${IMG[@]}" --camera=$C,0,0,0,360 --projection=o -D show_lid=false -D 
 checks=(
     "body-lid|check_n=0"
     "case-electronics|check_n=1"
-    "case-usbplugs|check_n=2"
     "case-base-flat|check_n=3;base=\"flat\""
     "case-base-pvc|check_n=3;base=\"pvc\""
     "case-base-strap|check_n=3;base=\"strap\""
@@ -73,5 +73,8 @@ rm -f "${HERE}/${OUT}/.check.stl"
 for p in 1/2 3/4; do
     docker run --rm -v "${HERE}:/work" -w /work "${OPENSCAD_IMAGE:-openscad/openscad:dev}" openscad -D "pipe=\"$p\"" -o /tmp/x.stl case.scad 2>&1 | grep ECHO || true
 done
+# the pictures the README shows
+mkdir -p "${HERE}/pictures"
+for f in assembly exploded assembly-flat assembly-strap end-far-flat top-open; do cp "${HERE}/${OUT}/${f}.png" "${HERE}/pictures/"; done
 [ "$fail" = 0 ] && echo "interference checks: all clear" || echo "INTERFERENCE FOUND"
 exit $fail
