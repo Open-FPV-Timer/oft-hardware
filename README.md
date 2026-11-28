@@ -74,6 +74,8 @@ the XIAOs.
 
 ## Files
 
+- `b1-proto-30x70/`: the hand-built one-Node Timer on a 30 x 70 mm protoboard, Timer on top
+  and Node underneath: where each pin goes and the five wires. No fab needed.
 - `carrier-N/`: the KiCad project for each size.
 - `lib/`: shared symbols (`oft.kicad_sym`) and footprints (`oft.pretty`) for the two modules.
   The Timer footprint is drawn from Waveshare's dimension drawing; the XIAO pad positions come
